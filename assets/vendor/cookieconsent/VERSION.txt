@@ -1,0 +1,6 @@
+CookieConsent by Orest Bida
+Version: 3.3.0 (npm vanilla-cookieconsent@3.3.0, dist/cookieconsent.umd.js and dist/cookieconsent.css, unmodified)
+Source: https://github.com/orestbida/cookieconsent/releases/tag/v3.3.0
+Licence: MIT, see LICENSE in this folder.
+
+To upgrade: bin/update-vendor.sh <version>, then run the test suites and the browser check in TESTING.md.

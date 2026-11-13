@@ -1,0 +1,88 @@
+/*
+ * RYCM Cookie Consent: theme layer over CookieConsent v3.
+ * Brand colours arrive as inline custom properties (Rycm_Consent_Config::css_vars).
+ * Everything else here is derived from them, so a dark or light banner both work.
+ */
+#cc-main {
+	--cc-font-family: inherit;
+	--cc-modal-border-radius: 14px;
+	--cc-btn-border-radius: 999px;
+	--cc-z-index: 2147483000;
+	--cc-separator-border-color: color-mix(in srgb, var(--cc-primary-color) 18%, var(--cc-bg));
+	--cc-footer-bg: color-mix(in srgb, var(--cc-primary-color) 6%, var(--cc-bg));
+	--cc-footer-color: var(--cc-primary-color);
+	--cc-footer-border-color: var(--cc-separator-border-color);
+	--cc-cookie-category-block-bg: color-mix(in srgb, var(--cc-primary-color) 6%, var(--cc-bg));
+	--cc-cookie-category-block-border: var(--cc-separator-border-color);
+	--cc-cookie-category-block-hover-bg: color-mix(in srgb, var(--cc-primary-color) 10%, var(--cc-bg));
+	--cc-cookie-category-block-hover-border: var(--cc-separator-border-color);
+	--cc-cookie-category-expanded-block-bg: transparent;
+	--cc-cookie-category-expanded-block-hover-bg: color-mix(in srgb, var(--cc-primary-color) 4%, var(--cc-bg));
+	--cc-section-category-border: var(--cc-separator-border-color);
+	--cc-toggle-off-bg: color-mix(in srgb, var(--cc-primary-color) 45%, var(--cc-bg));
+	--cc-toggle-off-knob-bg: var(--cc-bg);
+	--cc-toggle-on-knob-bg: var(--cc-btn-primary-color);
+	--cc-toggle-enabled-icon-color: var(--cc-btn-primary-bg);
+	--cc-toggle-disabled-icon-color: var(--cc-bg);
+	--cc-toggle-readonly-bg: color-mix(in srgb, var(--cc-btn-primary-bg) 55%, var(--cc-bg));
+	--cc-toggle-readonly-knob-bg: var(--cc-btn-primary-color);
+	--cc-toggle-readonly-knob-icon-color: var(--cc-btn-primary-bg);
+	--cc-overlay-bg: rgba(0, 0, 0, 0.55);
+	--cc-webkit-scrollbar-bg: var(--cc-separator-border-color);
+}
+
+/* Equal weight: every button in both modals has the same size, colour and weight. */
+#cc-main .cm__btn,
+#cc-main .pm__btn {
+	font-weight: 700;
+	min-height: 44px;
+}
+
+/* Visible keyboard focus on every control, whatever the brand colours. */
+#cc-main button:focus-visible,
+#cc-main a:focus-visible,
+#cc-main input:focus-visible + .section__toggle-wrapper,
+#cc-main .section__toggle:focus-visible ~ .toggle__icon {
+	outline: 3px solid var(--rycm-cc-focus, currentColor);
+	outline-offset: 3px;
+}
+
+#cc-main a {
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+/* Re-open button for withdrawing or changing consent at any time. */
+.rycm-cc-reopen {
+	position: fixed;
+	bottom: 16px;
+	z-index: 2147482999;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 0;
+	border-radius: 999px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	background: var(--rycm-cc-reopen-bg, #070630);
+	color: var(--rycm-cc-reopen-color, #fff);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+.rycm-cc-reopen[hidden] { display: none; }
+.rycm-cc-reopen--left { left: 16px; }
+.rycm-cc-reopen--right { right: 16px; }
+.rycm-cc-reopen:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px #070630; }
+
+/* Cookie policy table from [rycm_cookie_policy]. */
+.rycm-cookie-policy table { width: 100%; border-collapse: collapse; margin: 0 0 1.5em; }
+.rycm-cookie-policy th,
+.rycm-cookie-policy td { text-align: left; vertical-align: top; padding: 0.5em 0.75em; border-bottom: 1px solid rgba(127, 127, 127, 0.35); }
+.rycm-cookie-policy caption { text-align: left; font-weight: 700; padding: 0 0 0.5em; }
+@media (max-width: 640px) {
+	.rycm-cookie-policy thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+	.rycm-cookie-policy tr { display: block; padding: 0.5em 0; border-bottom: 1px solid rgba(127, 127, 127, 0.35); }
+	.rycm-cookie-policy td { display: block; border: 0; padding: 0.15em 0; }
+	.rycm-cookie-policy td::before { content: attr(data-label) ": "; font-weight: 700; }
+}

@@ -1,0 +1,48 @@
+name: Release
+
+# Push a tag like v0.2.0 and this builds rycm-consent.zip and publishes it as a
+# GitHub Release. Sites running the plugin see the update in wp-admin within
+# six hours (the updater's cache), or straight away after "Check again".
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3
+          tools: none
+      - name: Tag must match the plugin version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          HEADER=$(sed -n 's/^ \* Version: *//p' rycm-consent.php | tr -d '[:space:]')
+          CONST=$(sed -n "s/^define( 'RYCM_CONSENT_VERSION', '\(.*\)' );/\1/p" rycm-consent.php)
+          STABLE=$(sed -n 's/^Stable tag: *//p' readme.txt | tr -d '[:space:]')
+          echo "tag=$TAG header=$HEADER const=$CONST readme=$STABLE"
+          test "$TAG" = "$HEADER" && test "$TAG" = "$CONST" && test "$TAG" = "$STABLE"
+      - name: Unit tests
+        run: php tests/run.php
+      - name: Integration tests
+        run: |
+          bin/setup-test-wp.sh "$RUNNER_TEMP/wp"
+          cd "$RUNNER_TEMP/wp/core" && php "$RUNNER_TEMP/wp/wp-cli.phar" --allow-root eval-file "$GITHUB_WORKSPACE/tests/integration/run.php"
+      - name: Build zip
+        run: bin/build-zip.sh
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES=$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## "v {f=1; next} /^## / {f=0} f' CHANGELOG.md)
+          gh release create "$GITHUB_REF_NAME" dist/rycm-consent.zip \
+            --title "RYCM Cookie Consent $GITHUB_REF_NAME" \
+            --notes "${NOTES:-See CHANGELOG.md}" \
+            --verify-tag
