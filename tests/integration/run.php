@@ -85,6 +85,28 @@ $ok( $first_script === strpos( $head, '<script data-cfasync="false" data-no-opti
 $ok( false !== strpos( $head, '<script type="text/plain" data-category="analytics" data-service="ga4" async data-src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"' ), 'GA4 held as text/plain with data-src' );
 $ok( ! preg_match( '/<script[^>]+\ssrc="https:\/\/www\.googletagmanager\.com/', $head ), 'no live gtag.js src before consent' );
 
+$ok( false === strpos( $head, 'rycm-cf-beacon' ), 'no Cloudflare loader without a token' );
+
+// ---- Cloudflare Web Analytics loader
+$s                    = Rycm_Consent_Plugin::settings();
+$s['cf_beacon_token'] = '93fca053892a416294e50d366d9e840e';
+$ref0                 = new ReflectionProperty( 'Rycm_Consent_Admin', 'internal_write' );
+$ref0->setAccessible( true );
+$ref0->setValue( null, true );
+update_option( Rycm_Consent_Plugin::OPTION, $s );
+$ref0->setValue( null, false );
+ob_start();
+Rycm_Consent_Frontend::cf_beacon();
+$cf = ob_get_clean();
+$ok( false !== strpos( $cf, 'id="rycm-cf-beacon"' ) && false !== strpos( $cf, '93fca053892a416294e50d366d9e840e' ), 'Cloudflare loader printed with the token' );
+$ok( false === strpos( $cf, 'data-category' ), 'Cloudflare loader is not held for consent (runs by default)' );
+$ok( false !== strpos( $cf, 'indexOf("analytics")' ), 'Cloudflare loader checks the stored choice for analytics' );
+$ok( false !== strpos( do_shortcode( '[rycm_cookie_policy]' ), 'Cloudflare Web Analytics' ), 'policy table lists Cloudflare' );
+$s['cf_beacon_token'] = '';
+$ref0->setValue( null, true );
+update_option( Rycm_Consent_Plugin::OPTION, $s );
+$ref0->setValue( null, false );
+
 // ---- Blocking a registered handle, including its inline blocks
 wp_register_script( 'test-tracker', 'https://tracker.test/t.js', array(), '1', true );
 wp_add_inline_script( 'test-tracker', 'window.trackerBefore=1;', 'before' );

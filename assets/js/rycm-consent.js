@@ -49,6 +49,22 @@
 		});
 	}
 
+	// Cloudflare Web Analytics runs unless analytics is refused: start it when allowed,
+	// reload without it when refused on a page where it is already running.
+	function cfBeaconUpdate(accepted) {
+		if (!D.cfBeacon) {
+			return;
+		}
+		if (accepted.indexOf('analytics') > -1) {
+			if (typeof window.rycmCfBeacon === 'function') {
+				window.rycmCfBeacon();
+			}
+		} else if (window.rycmCfLoaded) {
+			window.rycmCfLoaded = false;
+			setTimeout(function () { window.location.reload(); }, 50);
+		}
+	}
+
 	function showReopen(on) {
 		var btns = document.querySelectorAll('.rycm-cc-reopen');
 		for (var i = 0; i < btns.length; i++) {
@@ -60,6 +76,7 @@
 		var accepted = (cookie && cookie.categories) || [];
 		consentModeUpdate(accepted);
 		wpConsentUpdate(accepted);
+		cfBeaconUpdate(accepted);
 		showReopen(true);
 		try {
 			document.dispatchEvent(new CustomEvent('rycm-consent:change', { detail: { categories: accepted.slice() } }));

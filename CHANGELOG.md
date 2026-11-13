@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Cloudflare Web Analytics as a built-in service (setting: Cloudflare Web Analytics token). Cookieless aggregate statistics need no consent under PECR as amended by the Data (Use and Access) Act 2025, provided visitors can object, so the beacon loads before any choice and after Accept, and stays off once a visitor chooses Reject all or switches analytics off. Allowing analytics again starts it; refusing on a page where it is running reloads the page without it. Listed under Analytics in the preferences panel and `[rycm_cookie_policy]`.
+- "None" in a service's cookie list is no longer treated as a cookie name.
+
 ## 0.1.1
 
 - Fix: expanded categories in the preferences panel were clipped into an oval, because CookieConsent uses `--cc-btn-border-radius` for the category panels as well as the buttons. The variable is now 12px and the buttons are made round directly.

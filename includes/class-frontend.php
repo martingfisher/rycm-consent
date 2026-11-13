@@ -25,6 +25,7 @@ final class Rycm_Consent_Frontend {
 	public static function boot(): void {
 		add_action( 'wp_head', array( __CLASS__, 'consent_mode_head' ), -1000 );
 		add_action( 'wp_head', array( __CLASS__, 'ga4_tag' ), 5 );
+		add_action( 'wp_head', array( __CLASS__, 'cf_beacon' ), 6 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue' ), 5 );
 		add_filter( 'script_loader_tag', array( __CLASS__, 'filter_script_tag' ), 999, 2 );
 		add_action( 'wp_footer', array( __CLASS__, 'reopen_button' ), 5 );
@@ -78,6 +79,26 @@ final class Rycm_Consent_Frontend {
 			. "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 
+	/**
+	 * Cloudflare Web Analytics: cookieless aggregate statistics, which PECR (as amended by the
+	 * Data (Use and Access) Act 2025) allows without consent provided visitors can object.
+	 * So it runs by default, before any choice and after Accept, and stays off once the
+	 * visitor has chosen Reject all or switched analytics off. rycm-consent.js starts it
+	 * when analytics is allowed later, and reloads the page when it is withdrawn.
+	 */
+	public static function cf_beacon(): void {
+		$s = Rycm_Consent_Plugin::settings();
+		if ( ! self::enabled() || '' === $s['cf_beacon_token'] ) {
+			return;
+		}
+		$js = '(function(){var on=true;try{var r=JSON.parse(localStorage.getItem(' . wp_json_encode( $s['storage_key'] ) . ')||"null");'
+			. 'if(r&&r.revision===' . (int) $s['policy_version'] . '&&r.expirationTime>Date.now()&&Array.isArray(r.categories))on=r.categories.indexOf("analytics")>-1;}catch(e){}'
+			. 'window.rycmCfBeacon=function(){if(window.rycmCfLoaded)return;window.rycmCfLoaded=true;var s=document.createElement("script");s.defer=true;'
+			. 's.src="https://static.cloudflareinsights.com/beacon.min.js";s.setAttribute("data-cf-beacon",' . wp_json_encode( wp_json_encode( array( 'token' => $s['cf_beacon_token'] ) ) ) . ');document.head.appendChild(s);};'
+			. 'if(on)window.rycmCfBeacon();})();';
+		echo '<script data-cfasync="false" data-no-optimize="1" id="rycm-cf-beacon">' . $js . "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+
 	public static function filter_script_tag( string $tag, string $handle ): string {
 		$map = self::blocked_handles();
 		if ( isset( $map[ $handle ] ) && self::enabled() ) {
@@ -107,6 +128,7 @@ final class Rycm_Consent_Frontend {
 				Rycm_Consent_Plugin::page_url( (int) $s['privacy_page'] )
 			),
 			'consentMode' => (bool) $s['consent_mode'],
+			'cfBeacon'    => '' !== $s['cf_beacon_token'],
 			'cmMap'       => Rycm_Consent_Core::CONSENT_MODE_MAP,
 			'wpMap'       => Rycm_Consent_Core::WP_CONSENT_MAP,
 			'recordUrl'   => esc_url_raw( rest_url( Rycm_Consent_Rest::NS . '/record' ) ),
