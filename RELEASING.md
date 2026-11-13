@@ -19,6 +19,8 @@ Sites get updates from this repository's GitHub Releases. The plugin header has 
 5. The Release workflow re-runs the tests, builds `dist/rycm-consent.zip` (top-level folder `rycm-consent/`) and publishes the release with the zip attached.
 6. Sites show the update within six hours. To see it at once on a site: Dashboard > Updates > Check again (this clears WordPress's own cache; the plugin's six-hour cache is cleared after any plugin update, or with `wp transient delete rycm_consent_release --network`).
 
+On Wordify (Doing Good Leeds, 13 Nov 2026): Dashboard > Updates > Check again listed 0.1.1 straight away and updated it in one click. Through Wordify's WP-CLI console, `wp plugin list` and `wp plugin update rycm-consent` did not refresh the update check (even after deleting the `update_plugins` and `rycm_consent_release` transients) and reported nothing to update. Update from wp-admin, or install the release zip directly: `wp plugin install https://github.com/martingfisher/rycm-consent/releases/download/vX.Y.Z/rycm-consent.zip --force`.
+
 ## Rules
 
 - Never delete or re-point a published tag: sites may already have installed it.
