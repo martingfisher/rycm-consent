@@ -37,8 +37,9 @@ Set a test GA4 ID (Settings > Cookie consent, `G-TEST1234`; admin login `admin` 
 3. Floating cookie button, Reject all: page reloads; `_ga` and `_ga_TEST1234` are deleted; no Google request after the reload; a `reject` row appears with the same consent ID.
 4. Accept again and open another page: `consent update` granted comes straight after the default, before `js`/`config`.
 5. Raise the policy version: the banner returns, the stored grant is not applied, no Google request.
-6. Keyboard: Tab moves into the preferences panel and stays inside it; Escape closes it.
-7. Phone width (375px): banner fits with no horizontal scroll.
+6. Preferences panel: expand each category; the panels keep slightly rounded corners and the services table is not clipped.
+7. Keyboard: Tab moves into the preferences panel and stays inside it; Escape closes it.
+8. Phone width (375px): banner fits with no horizontal scroll.
 
 Read the rows with:
 

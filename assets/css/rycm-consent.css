@@ -6,7 +6,9 @@
 #cc-main {
 	--cc-font-family: inherit;
 	--cc-modal-border-radius: 14px;
-	--cc-btn-border-radius: 999px;
+	/* CookieConsent uses this one variable for buttons AND the category panels,
+	   so it stays a normal corner radius; pill buttons are set directly below. */
+	--cc-btn-border-radius: 12px;
 	--cc-z-index: 2147483000;
 	--cc-separator-border-color: color-mix(in srgb, var(--cc-primary-color) 18%, var(--cc-bg));
 	--cc-footer-bg: color-mix(in srgb, var(--cc-primary-color) 6%, var(--cc-bg));
@@ -36,6 +38,10 @@
 #cc-main .pm__btn {
 	font-weight: 700;
 	min-height: 44px;
+	border-radius: 999px;
+}
+#cc-main .pm__close-btn {
+	border-radius: 999px;
 }
 
 /* Visible keyboard focus on every control, whatever the brand colours. */
