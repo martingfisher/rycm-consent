@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.1', '8.4']
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: none
+      - name: Lint
+        run: find . -name '*.php' -not -path './tests/*' -print0 | xargs -0 -n1 php -l > /dev/null
+      - name: Unit tests
+        run: php tests/run.php
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3
+          tools: none
+      - name: Throwaway WordPress on SQLite
+        run: bin/setup-test-wp.sh "$RUNNER_TEMP/wp"
+      - name: Integration tests
+        run: cd "$RUNNER_TEMP/wp/core" && php "$RUNNER_TEMP/wp/wp-cli.phar" --allow-root eval-file "$GITHUB_WORKSPACE/tests/integration/run.php"
+      - name: Build zip
+        run: bin/build-zip.sh
