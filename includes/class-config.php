@@ -46,6 +46,17 @@ final class Rycm_Consent_Config {
 				'builtin'  => true,
 			);
 		}
+		if ( '' !== ( $s['cf_beacon_token'] ?? '' ) ) {
+			$out[] = array(
+				'name'     => 'Cloudflare Web Analytics',
+				'provider' => 'Cloudflare',
+				'purpose'  => 'Counts page views and page loading speed in total, without cookies and without identifying you. Runs unless you choose Reject all or switch analytics off.',
+				'cookies'  => 'None (no cookies or storage)',
+				'expiry'   => 'Not stored on your device',
+				'category' => 'analytics',
+				'builtin'  => true,
+			);
+		}
 		foreach ( $s['services'] as $svc ) {
 			$out[] = $svc + array( 'builtin' => false );
 		}

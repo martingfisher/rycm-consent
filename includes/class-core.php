@@ -100,6 +100,7 @@ final class Rycm_Consent_Core {
 			),
 			'services'            => array(),
 			'ga4_id'              => '',
+			'cf_beacon_token'     => '',
 			'consent_mode'        => true,
 			'region_mode'         => 'all',
 			'ads_data_redaction'  => true,
@@ -195,6 +196,7 @@ final class Rycm_Consent_Core {
 		}
 
 		$out['ga4_id']      = self::ga4_id( (string) ( $in['ga4_id'] ?? '' ) );
+		$out['cf_beacon_token'] = self::cf_token( (string) ( $in['cf_beacon_token'] ?? '' ) );
 		$out['region_mode'] = in_array( $in['region_mode'] ?? '', array( 'all', 'uk_eea' ), true ) ? $in['region_mode'] : 'all';
 		$out['cookie_policy_page'] = max( 0, (int) ( $in['cookie_policy_page'] ?? 0 ) );
 		$out['privacy_page']       = max( 0, (int) ( $in['privacy_page'] ?? 0 ) );
@@ -228,6 +230,12 @@ final class Rycm_Consent_Core {
 			$v = '#' . $m[1][0] . $m[1][0] . $m[1][1] . $m[1][1] . $m[1][2] . $m[1][2];
 		}
 		return preg_match( '/^#[0-9a-f]{6}$/', $v ) ? $v : $fallback;
+	}
+
+	/** Cloudflare Web Analytics site token: 32 hex characters. */
+	public static function cf_token( string $v ): string {
+		$v = strtolower( trim( $v ) );
+		return preg_match( '/^[0-9a-f]{32}$/', $v ) ? $v : '';
 	}
 
 	public static function ga4_id( string $v ): string {
@@ -395,9 +403,10 @@ final class Rycm_Consent_Core {
 	 */
 	public static function cookie_patterns( string $list ): array {
 		$out = array();
+		$list = (string) preg_replace( '/\([^)]*\)/', ' ', $list ); // "_ga (Google)": notes in brackets are not names.
 		foreach ( preg_split( '/[\s,]+/', $list ) ?: array() as $name ) {
 			$name = trim( $name );
-			if ( '' === $name || ! preg_match( '/^[A-Za-z0-9_.\-*]+$/', $name ) ) {
+			if ( '' === $name || 'none' === strtolower( $name ) || ! preg_match( '/^[A-Za-z0-9_.\-*]+$/', $name ) ) {
 				continue;
 			}
 			$out[] = '^' . str_replace( '\*', '.*', preg_quote( $name, '/' ) ) . '$';

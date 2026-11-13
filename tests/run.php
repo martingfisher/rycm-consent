@@ -231,6 +231,19 @@ T::eq( 2, count( $tables ), 'cookie tables for necessary and analytics' );
 $css = Rycm_Consent_Config::css_vars( $set['colours'] );
 T::ok( false !== strpos( $css, '--cc-btn-secondary-bg:#d6262a' ) && false !== strpos( $css, '--cc-btn-primary-bg:#d6262a' ), 'Reject styled exactly like Accept' );
 
+// ---- Cloudflare Web Analytics
+T::eq( '93fca053892a416294e50d366d9e840e', $C::cf_token( ' 93FCA053892A416294E50D366D9E840E ' ), 'cf token normalised' );
+T::eq( '', $C::cf_token( '93fca053"><script>' ), 'cf token injection refused' );
+T::eq( '', $C::cf_token( 'abc' ), 'short cf token refused' );
+T::eq( array(), $C::cookie_patterns( 'None (no cookies or storage)' ), '"None" is not a cookie name' );
+$cfset = $C::merge( array( 'cf_beacon_token' => '93fca053892a416294e50d366d9e840e' ) );
+$cfsvc = array_values( array_filter( Rycm_Consent_Config::services( $cfset ), static function ( $x ) { return 'Cloudflare Web Analytics' === $x['name']; } ) );
+T::eq( 1, count( $cfsvc ), 'Cloudflare listed when a token is set' );
+T::eq( 'analytics', $cfsvc[0]['category'] ?? '', 'Cloudflare sits under analytics, so Reject switches it off' );
+T::ok( false !== stripos( $cfsvc[0]['purpose'] ?? '', 'Reject all' ), 'Cloudflare purpose says how to switch it off' );
+T::eq( 0, count( array_filter( Rycm_Consent_Config::services( $C::merge( array() ) ), static function ( $x ) { return 'Cloudflare Web Analytics' === $x['name']; } ) ), 'no Cloudflare row without a token' );
+T::eq( '', $C::sanitize( array( 'cf_beacon_token' => 'nope' ), array() )['cf_beacon_token'], 'sanitize rejects bad token' );
+
 // ---- Release parsing (updater)
 $rel = array(
 	'tag_name'     => 'v0.2.0',

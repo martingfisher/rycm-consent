@@ -212,9 +212,10 @@ final class Rycm_Consent_Admin {
 				<p><button type="button" class="button" id="rycm-add-service"><?php esc_html_e( 'Add service', 'rycm-consent' ); ?></button></p>
 				<template id="rycm-service-template"><?php echo self::service_row( '__i__', array() ); // phpcs:ignore WordPress.Security.EscapeOutput ?></template>
 
-				<h2><?php esc_html_e( 'Google', 'rycm-consent' ); ?></h2>
+				<h2><?php esc_html_e( 'Analytics and Google', 'rycm-consent' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<?php
+					self::text( 'Cloudflare Web Analytics token', self::name( 'cf_beacon_token' ), $s['cf_beacon_token'], '32-character site token from Cloudflare > Web Analytics > Manage site > JS snippet. Cookieless statistics: runs by default and stops when a visitor chooses Reject all or switches analytics off. Remove any other copy of the beacon (WPCode, Cloudflare automatic setup).' );
 					self::text( 'GA4 measurement ID', self::name( 'ga4_id' ), $s['ga4_id'], 'G-XXXXXXXXXX. Leave empty if GA4 is added another way (Site Kit, GTM). The tag is not even downloaded until analytics is accepted.' );
 					self::check( 'Consent Mode v2', self::name( 'consent_mode' ), (bool) $s['consent_mode'], 'Print gtag consent defaults (all denied) first in <head>, and send an update on every choice.' );
 					self::select( 'Consent Mode region', self::name( 'region_mode' ), $s['region_mode'], array( 'all' => 'Denied by default for every visitor (recommended)', 'uk_eea' => 'Denied for UK, EEA and Switzerland; granted elsewhere' ) );

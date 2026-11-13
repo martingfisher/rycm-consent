@@ -27,6 +27,17 @@ The legal rules it implements are in `RYCM_forms_system/COOKIE_PRACTICE.md` (UK 
 
 Future updates arrive through Dashboard > Updates like any other plugin, and auto-updates can be switched on per site.
 
+## Cloudflare Web Analytics
+
+Set the site token (Settings > Cookie consent > Cloudflare Web Analytics token) and the plugin loads Cloudflare's beacon itself. It is cookieless aggregate statistics, which PECR (as amended by the Data (Use and Access) Act 2025, in force 5 February 2026) allows without consent provided visitors get clear information and a free, simple way to object. So:
+
+- it loads before any choice and after Accept;
+- it does not load once a visitor has chosen Reject all or switched analytics off;
+- allowing analytics again starts it on the same page; refusing on a page where it is running reloads the page without it;
+- it is listed under Analytics in the preferences panel and `[rycm_cookie_policy]`, saying Reject switches it off.
+
+Remove every other copy of the beacon (a WPCode snippet, Cloudflare's automatic setup) or it will run regardless of the choice.
+
 ## What gets recorded
 
 | Column | Content |
