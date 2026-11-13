@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Fix: expanded categories in the preferences panel were clipped into an oval, because CookieConsent uses `--cc-btn-border-radius` for the category panels as well as the buttons. The variable is now 12px and the buttons are made round directly.
+
 ## 0.1.0
 
 First release (Phase 1).

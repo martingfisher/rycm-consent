@@ -4,7 +4,7 @@ Tags: cookie consent, gdpr, pecr, consent mode, cookie banner
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,9 @@ UK GDPR and PECR cookie consent for RYCM client sites, built on CookieConsent v3
 Bundles CookieConsent 3.3.0 by Orest Bida (MIT licence), unmodified, in assets/vendor/cookieconsent.
 
 == Changelog ==
+
+= 0.1.1 =
+* Fix: expanded categories in the preferences panel were clipped into an oval.
 
 = 0.1.0 =
 * First release.
