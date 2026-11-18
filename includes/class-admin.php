@@ -282,7 +282,7 @@ final class Rycm_Consent_Admin {
 			?>
 			<a class="button" href="<?php echo esc_url( $export ); ?>"><?php esc_html_e( 'Export CSV', 'rycm-consent' ); ?></a>
 		</p>
-		<p class="description"><?php esc_html_e( 'A visitor can find their consent ID in the cookie preferences panel by asking you; their browser keeps it in local storage. IP addresses are stored only as a salted SHA-256 hash.', 'rycm-consent' ); ?></p>
+		<p class="description"><?php esc_html_e( 'A visitor can find their consent ID in the cookie preferences panel by asking you; their browser keeps it in local storage. IP addresses are not stored, not even as a hash.', 'rycm-consent' ); ?></p>
 		<form method="get">
 			<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>">
 			<label for="rycm-cid" class="screen-reader-text"><?php esc_html_e( 'Consent ID', 'rycm-consent' ); ?></label>
@@ -290,10 +290,10 @@ final class Rycm_Consent_Admin {
 			<?php submit_button( __( 'Search', 'rycm-consent' ), 'secondary', '', false ); ?>
 		</form>
 		<table class="widefat striped" style="margin-top:1em">
-			<thead><tr><th>When (UTC)</th><th>Consent ID</th><th>Choice</th><th>Categories</th><th>Policy</th><th>Browser</th><th>IP hash</th></tr></thead>
+			<thead><tr><th>When (UTC)</th><th>Consent ID</th><th>Choice</th><th>Categories</th><th>Policy</th><th>Browser</th></tr></thead>
 			<tbody>
 			<?php if ( ! $rows ) : ?>
-				<tr><td colspan="7"><?php esc_html_e( 'No records yet.', 'rycm-consent' ); ?></td></tr>
+				<tr><td colspan="6"><?php esc_html_e( 'No records yet.', 'rycm-consent' ); ?></td></tr>
 			<?php endif; ?>
 			<?php foreach ( $rows as $r ) : ?>
 				<tr>
@@ -303,7 +303,6 @@ final class Rycm_Consent_Admin {
 					<td><?php echo esc_html( $r['categories'] ); ?></td>
 					<td><?php echo esc_html( (string) $r['policy_version'] ); ?></td>
 					<td><?php echo esc_html( $r['ua_family'] ); ?></td>
-					<td><code title="<?php echo esc_attr( $r['ip_hash'] ); ?>"><?php echo esc_html( substr( $r['ip_hash'], 0, 12 ) ); ?>…</code></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>

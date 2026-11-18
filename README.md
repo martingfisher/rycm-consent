@@ -47,10 +47,9 @@ Remove every other copy of the beacon (a WPCode snippet, Cloudflare's automatic 
 | `categories` | What was accepted, for example `necessary,analytics`. |
 | `policy_version` | The policy version the visitor saw. |
 | `created_at` | UTC. |
-| `ip_hash` | SHA-256 of the IP address with a per-site secret salt. The address itself is never stored. |
 | `ua_family` | Browser and system family only, such as `Chrome / macOS`. |
 
-Rows older than the retention setting (default 12 months) are deleted by a daily cron. The REST route that writes them (`POST /wp-json/rycm-consent/v1/record`) needs a signed token printed into the page, refuses cross-origin requests and allows 30 writes per visitor per 10 minutes.
+No IP address is kept, raw or hashed (the `ip_hash` column of 0.1.0 to 0.1.2 is dropped on update). Rows older than the retention setting (default 12 months) are deleted by a daily cron. The REST route that writes them (`POST /wp-json/rycm-consent/v1/record`) needs a signed token printed into the page, refuses cross-origin requests and allows 30 writes per visitor per 10 minutes.
 
 The token is not a WordPress nonce on purpose. Nonces are tied to the logged-in user and expire, so on a cached page (Wordify, Cloudflare) every visitor would get someone else's stale nonce and the record would fail. The token is an HMAC of the site secret and a 12-hour window, valid for 12 to 24 hours; if a cached page carries an older one, the banner fetches a fresh one from `GET /wp-json/rycm-consent/v1/token` and retries once.
 

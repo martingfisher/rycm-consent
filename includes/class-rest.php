@@ -103,7 +103,6 @@ final class Rycm_Consent_Rest {
 			$action,
 			$categories,
 			$revision,
-			Rycm_Consent_Core::hash_ip( self::client_ip(), Rycm_Consent_Plugin::secret() ),
 			Rycm_Consent_Core::ua_family( (string) $req->get_header( 'user_agent' ) )
 		);
 		do_action( 'rycm_consent_recorded', $consent_id, $action, $categories, $revision );
