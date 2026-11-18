@@ -46,7 +46,7 @@ final class Rycm_Consent_Plugin {
 		self::$settings = null;
 	}
 
-	/** Per-site secret: salts IP hashes and signs the record token. Never leaves the database. */
+	/** Per-site secret: signs the record token and salts the short-lived rate-limit key. Never leaves the database. */
 	public static function secret(): string {
 		$secret = (string) get_option( self::SECRET, '' );
 		if ( strlen( $secret ) < 32 ) {

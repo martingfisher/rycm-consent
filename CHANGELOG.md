@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Consent records no longer keep a hash of the visitor's IP address. The salt lives in the same database, so the hash could be worked back to an address, and nothing read it. On update the `ip_hash` column is dropped, which erases the hashes already stored. A record is now: consent ID, choice, categories, policy version, time and browser family.
+- The column is gone from the Settings table and the CSV export (`ip_hash_sha256`). The rate limit on the record route is unchanged: it still keys on a salted hash of the address, held for 10 minutes and never written to the records table.
+
 ## 0.1.2
 
 - Cloudflare Web Analytics as a built-in service (setting: Cloudflare Web Analytics token). Cookieless aggregate statistics need no consent under PECR as amended by the Data (Use and Access) Act 2025, provided visitors can object, so the beacon loads before any choice and after Accept, and stays off once a visitor chooses Reject all or switches analytics off. Allowing analytics again starts it; refusing on a page where it is running reloads the page without it. Listed under Analytics in the preferences panel and `[rycm_cookie_policy]`.

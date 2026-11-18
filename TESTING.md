@@ -20,7 +20,7 @@ bin/setup-test-wp.sh /tmp/rycm-consent-test-wp
 cd /tmp/rycm-consent-test-wp/core && php ../wp-cli.phar --allow-root eval-file ~/Developer/rycm-consent/tests/integration/run.php
 ```
 
-Covers: table and cron install, the real `wp_kses` sanitiser, the head output order (Consent Mode first, GA4 held with `data-src`), holding an enqueued handle and its inline blocks, the REST route end to end (201 per choice, server-derived action, salted IP hash, browser family, bad token, cross-origin, bad UUID, future revision, rate limit 429), the token refresh route, retention purge, CSV export, both shortcodes, the policy-version bump, WP Consent API registration, and a full WordPress update check against a mocked GitHub release (Updates screen entry and View details).
+Covers: table and cron install, the real `wp_kses` sanitiser, the head output order (Consent Mode first, GA4 held with `data-src`), holding an enqueued handle and its inline blocks, the REST route end to end (201 per choice, server-derived action, no IP address or hash stored, browser family, bad token, cross-origin, bad UUID, future revision, rate limit 429), the token refresh route, retention purge, the schema 2 upgrade that drops `ip_hash`, CSV export, both shortcodes, the policy-version bump, WP Consent API registration, and a full WordPress update check against a mocked GitHub release (Updates screen entry and View details).
 
 ## Browser check (before every release that touches the front end)
 

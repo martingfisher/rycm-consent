@@ -317,6 +317,7 @@ final class Rycm_Consent_Core {
 	}
 
 	/** SHA-256 of the IP and a per-site salt: proves "same visitor" without storing the address. */
+	/** Used only for the rate-limit transient key (10 minutes). Never written to the records table. */
 	public static function hash_ip( string $ip, string $salt ): string {
 		return hash( 'sha256', $salt . '|' . trim( $ip ) );
 	}

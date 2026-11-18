@@ -163,8 +163,9 @@ $eq( 'custom', $r->get_data()['action'] ?? null, 'custom recorded, unknown categ
 $rows = Rycm_Consent_Records::latest( 10, $uuid );
 $eq( 3, count( $rows ), 'three rows for this consent id' );
 $eq( 'necessary,analytics', $rows[0]['categories'], 'clean categories stored' );
-$eq( Rycm_Consent_Core::hash_ip( '203.0.113.7', Rycm_Consent_Plugin::secret() ), $rows[0]['ip_hash'], 'salted IP hash stored' );
+$ok( ! array_key_exists( 'ip_hash', $rows[0] ), 'no IP hash column on a record' );
 $ok( false === strpos( wp_json_encode( $rows ), '203.0.113.7' ), 'raw IP never stored' );
+$ok( false === strpos( wp_json_encode( $rows ), Rycm_Consent_Core::hash_ip( '203.0.113.7', Rycm_Consent_Plugin::secret() ) ), 'IP hash never stored' );
 $eq( 'Chrome / macOS', $rows[0]['ua_family'], 'UA family stored, not full UA' );
 $eq( '1', (string) $rows[0]['policy_version'], 'policy version stored' );
 
@@ -189,21 +190,35 @@ $eq( Rycm_Consent_Rest::RATE_LIMIT, count( array_keys( $codes, 201, true ) ), 'r
 $eq( 429, end( $codes ), 'rate limit then answers 429' );
 
 // ---- Retention purge
-$wpdb->insert( $table, array( 'consent_id' => wp_generate_uuid4(), 'action' => 'accept', 'categories' => 'necessary', 'policy_version' => 1, 'created_at' => gmdate( 'Y-m-d H:i:s', strtotime( '-13 months' ) ), 'ip_hash' => str_repeat( 'a', 64 ), 'ua_family' => 'x' ) );
-$wpdb->insert( $table, array( 'consent_id' => wp_generate_uuid4(), 'action' => 'accept', 'categories' => 'necessary', 'policy_version' => 1, 'created_at' => gmdate( 'Y-m-d H:i:s', strtotime( '-11 months' ) ), 'ip_hash' => str_repeat( 'b', 64 ), 'ua_family' => 'x' ) );
+$wpdb->insert( $table, array( 'consent_id' => wp_generate_uuid4(), 'action' => 'accept', 'categories' => 'necessary', 'policy_version' => 1, 'created_at' => gmdate( 'Y-m-d H:i:s', strtotime( '-13 months' ) ), 'ua_family' => 'x' ) );
+$wpdb->insert( $table, array( 'consent_id' => wp_generate_uuid4(), 'action' => 'accept', 'categories' => 'necessary', 'policy_version' => 1, 'created_at' => gmdate( 'Y-m-d H:i:s', strtotime( '-11 months' ) ), 'ua_family' => 'x' ) );
 $before = Rycm_Consent_Records::count();
 $eq( 1, Rycm_Consent_Records::purge(), 'purge removes only rows past 12 months' );
 $eq( $before - 1, Rycm_Consent_Records::count(), 'row count drops by one' );
 
 // ---- CSV
-$wpdb->insert( $table, array( 'consent_id' => wp_generate_uuid4(), 'action' => 'accept', 'categories' => 'necessary', 'policy_version' => 1, 'created_at' => gmdate( 'Y-m-d H:i:s' ), 'ip_hash' => str_repeat( 'c', 64 ), 'ua_family' => '=cmd()' ) );
+$wpdb->insert( $table, array( 'consent_id' => wp_generate_uuid4(), 'action' => 'accept', 'categories' => 'necessary', 'policy_version' => 1, 'created_at' => gmdate( 'Y-m-d H:i:s' ), 'ua_family' => '=cmd()' ) );
 $fh = fopen( 'php://memory', 'w+' );
 Rycm_Consent_Records::export_csv( $fh );
 rewind( $fh );
 $csv = stream_get_contents( $fh );
-$ok( 0 === strpos( $csv, 'id,consent_id,action,categories,policy_version,created_at_utc,ip_hash_sha256,user_agent_family' ), 'CSV header' );
+$ok( 0 === strpos( $csv, 'id,consent_id,action,categories,policy_version,created_at_utc,user_agent_family' ), 'CSV header' );
+$ok( false === strpos( $csv, 'ip_hash' ), 'CSV has no IP hash column' );
 $eq( Rycm_Consent_Records::count() + 1, substr_count( trim( $csv ), "\n" ) + 1, 'CSV has a line per row plus header' );
 $ok( false !== strpos( $csv, "'=cmd()" ), 'CSV neutralises formulas' );
+
+// ---- Schema 2 upgrade: a table made by 0.1.0 to 0.1.2 loses ip_hash and keeps its rows
+$wpdb->query( "ALTER TABLE {$table} ADD COLUMN ip_hash char(64) NOT NULL DEFAULT ''" );
+$wpdb->query( "UPDATE {$table} SET ip_hash = '" . str_repeat( 'd', 64 ) . "'" );
+update_option( Rycm_Consent_Plugin::DB_VERSION, '1', false );
+$ok( Rycm_Consent_Records::has_column( 'ip_hash' ), 'old-schema table has ip_hash before the upgrade' );
+$kept = Rycm_Consent_Records::count();
+Rycm_Consent_Plugin::maybe_upgrade();
+$ok( ! Rycm_Consent_Records::has_column( 'ip_hash' ), 'upgrade drops ip_hash' );
+$eq( '2', get_option( Rycm_Consent_Plugin::DB_VERSION ), 'schema version raised to 2' );
+$eq( $kept, Rycm_Consent_Records::count(), 'upgrade keeps every row' );
+$ok( Rycm_Consent_Records::insert( wp_generate_uuid4(), 'reject', array( 'necessary' ), 1, 'Firefox / Windows' ), 'insert works after the upgrade' );
+$ok( false === strpos( wp_json_encode( Rycm_Consent_Records::latest( 500 ) ), str_repeat( 'd', 64 ) ), 'stored hashes erased by the upgrade' );
 
 // ---- Shortcodes
 $link = do_shortcode( '[rycm_cookie_settings]' );

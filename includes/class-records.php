@@ -3,8 +3,8 @@
  * Consent records: the table, writes, retention purge and CSV export.
  *
  * One row per choice a visitor makes. Enough to show the ICO what was asked,
- * what was chosen and when, without keeping the IP address or the full user
- * agent.
+ * what was chosen and when, without keeping the IP address (raw or hashed) or
+ * the full user agent.
  *
  * @package RycmConsent
  */
@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Rycm_Consent_Records {
 
-	public const SCHEMA = '1';
+	public const SCHEMA = '2';
 
 	public static function table(): string {
 		global $wpdb;
@@ -35,20 +35,43 @@ final class Rycm_Consent_Records {
 				categories varchar(191) NOT NULL,
 				policy_version int(10) unsigned NOT NULL,
 				created_at datetime NOT NULL,
-				ip_hash char(64) NOT NULL,
 				ua_family varchar(64) NOT NULL,
 				PRIMARY KEY  (id),
 				KEY consent_id (consent_id),
 				KEY created_at (created_at)
 			) {$charset};"
 		);
-		update_option( Rycm_Consent_Plugin::DB_VERSION, self::SCHEMA, false );
+		// Only mark the upgrade done once the old column has gone, so a failed drop is retried on the next load.
+		if ( self::drop_ip_hash() ) {
+			update_option( Rycm_Consent_Plugin::DB_VERSION, self::SCHEMA, false );
+		}
+	}
+
+	/**
+	 * Schema 2 (0.1.3): the salted IP hash is no longer kept. dbDelta never
+	 * removes a column, so tables made by 0.1.0 to 0.1.2 have it dropped here,
+	 * which also erases the hashes already stored.
+	 */
+	private static function drop_ip_hash(): bool {
+		global $wpdb;
+		$table = self::table();
+		if ( ! self::has_column( 'ip_hash' ) ) {
+			return true;
+		}
+		$wpdb->query( "ALTER TABLE {$table} DROP COLUMN ip_hash" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return ! self::has_column( 'ip_hash' );
+	}
+
+	public static function has_column( string $column ): bool {
+		global $wpdb;
+		$table = self::table();
+		return null !== $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$table} LIKE %s", $column ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
 	/**
 	 * @param string[] $categories Clean category keys.
 	 */
-	public static function insert( string $consent_id, string $action, array $categories, int $version, string $ip_hash, string $ua_family ): bool {
+	public static function insert( string $consent_id, string $action, array $categories, int $version, string $ua_family ): bool {
 		global $wpdb;
 		return false !== $wpdb->insert(
 			self::table(),
@@ -58,10 +81,9 @@ final class Rycm_Consent_Records {
 				'categories'     => implode( ',', $categories ),
 				'policy_version' => $version,
 				'created_at'     => gmdate( 'Y-m-d H:i:s' ),
-				'ip_hash'        => $ip_hash,
 				'ua_family'      => substr( $ua_family, 0, 64 ),
 			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%d', '%s', '%s' )
 		);
 	}
 
@@ -104,7 +126,7 @@ final class Rycm_Consent_Records {
 	public static function export_csv( $out ): void {
 		global $wpdb;
 		$table = self::table();
-		fputcsv( $out, array( 'id', 'consent_id', 'action', 'categories', 'policy_version', 'created_at_utc', 'ip_hash_sha256', 'user_agent_family' ), ',', '"', '\\' );
+		fputcsv( $out, array( 'id', 'consent_id', 'action', 'categories', 'policy_version', 'created_at_utc', 'user_agent_family' ), ',', '"', '\\' );
 		$last = 0;
 		do {
 			$rows = (array) $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE id > %d ORDER BY id ASC LIMIT 1000", $last ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -114,7 +136,7 @@ final class Rycm_Consent_Records {
 					$out,
 					array_map(
 						array( 'Rycm_Consent_Core', 'csv_cell' ),
-						array( (string) $r['id'], $r['consent_id'], $r['action'], $r['categories'], (string) $r['policy_version'], $r['created_at'], $r['ip_hash'], $r['ua_family'] )
+						array( (string) $r['id'], $r['consent_id'], $r['action'], $r['categories'], (string) $r['policy_version'], $r['created_at'], $r['ua_family'] )
 					),
 					',',
 					'"',
